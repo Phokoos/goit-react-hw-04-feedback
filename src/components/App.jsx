@@ -1,69 +1,65 @@
 import css from './feedback.module.css';
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 
 import FeedbackBtn from './buttons/buttons';
 import Statictics from './statictics/statictics';
 import Notification from './notification/notification';
 import Section from './section/section';
 
-// import Feedback from './feedback/feedback';
+const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+  const [sum, setSum] = useState(0);
+  const [positivePersentage, setPositivePersentage] = useState(0);
 
-class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+  useEffect(() => {
+    setSum(good + neutral + bad);
+    setPositivePersentage(Math.round(good / (sum / 100)));
+  }, [bad, good, neutral, sum]);
+
+  const handleClickButton = value => {
+    if (value === 'good') {
+      return setGood(state => state + 1);
+    }
+    if (value === 'neutral') {
+      return setNeutral(state => state + 1);
+    }
+    if (value === 'bad') {
+      return setBad(state => state + 1);
+    }
   };
 
-  clickButton = event => {
+  const clickButton = event => {
     event.preventDefault();
     const { innerText } = event.target;
 
-    this.setState(prevState => ({
-      [innerText]: prevState[innerText] + 1,
-    }));
+    handleClickButton(innerText);
   };
 
-  countTotalFeedback = () => {
-    const sum = Object.values(this.state).reduce(
-      (sum, value) => sum + value,
-      0
-    );
-    return sum;
-  };
-
-  countPositiveFeedbackPercentage = () => {
-    const sum = this.state.good / (this.countTotalFeedback() / 100);
-    return Math.round(sum);
-  };
-
-  render() {
-    return (
-      <div className={css.feedback__container}>
-        <Section title="Please leave feedback">
-          <FeedbackBtn
-            options={Object.keys(this.state)}
-            clickButton={this.clickButton}
+  return (
+    <div className={css.feedback__container}>
+      <Section title="Please leave feedback">
+        <FeedbackBtn
+          options={Object.keys({ good, neutral, bad })}
+          clickButton={clickButton}
+        />
+      </Section>
+      <Section title="Statictics">
+        {sum > 0 ? (
+          <Statictics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            sum={sum}
+            countPositiveFeedbackPercentage={positivePersentage}
           />
-        </Section>
-        <Section title="Statictics">
-          {this.countTotalFeedback() > 0 ? (
-            <Statictics
-              good={this.state.good}
-              neutral={this.state.neutral}
-              bad={this.state.bad}
-              countTotalFeedback={this.countTotalFeedback}
-              countPositiveFeedbackPercentage={
-                this.countPositiveFeedbackPercentage
-              }
-            />
-          ) : (
-            <Notification message={'There is no feedback'} />
-          )}
-        </Section>
-      </div>
-    );
-  }
-}
+        ) : (
+          <Notification message={'There is no feedback'} />
+        )}
+      </Section>
+    </div>
+  );
+};
 
 export default App;
